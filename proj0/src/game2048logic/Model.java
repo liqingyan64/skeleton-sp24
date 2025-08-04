@@ -6,151 +6,163 @@ import game2048rendering.Tile;
 
 import java.util.Formatter;
 
-
-/** The state of a game of 2048.
+/** 2048 游戏的状态。
  *  @author P. N. Hilfinger + Josh Hug
  */
 public class Model {
-    /** Current contents of the board. */
+    /** 当前棋盘的内容。 */
     private final Board board;
-    /** Current score. */
+    /** 当前得分。 */
     private int score;
 
-    /* Coordinate System: column x, row y of the board (where x = 0,
-     * y = 0 is the lower-left corner of the board) will correspond
-     * to board.tile(x, y).  Be careful!
-     */
+    /* 坐标系统：棋盘的第 x 列，第 y 行（x = 0, y = 0 是棋盘左下角）对应 board.tile(x, y)。要小心！ */
 
-    /** Largest piece value. */
+    /** 最大方块数值。 */
     public static final int MAX_PIECE = 2048;
 
-    /** A new 2048 game on a board of size SIZE with no pieces
-     *  and score 0. */
+    /** 一个新的 2048 游戏，棋盘大小为 SIZE，无方块，得分为 0。 */
     public Model(int size) {
         board = new Board(size);
         score = 0;
     }
 
-    /** A new 2048 game where RAWVALUES contain the values of the tiles
-     * (0 if null). VALUES is indexed by (x, y) with (0, 0) corresponding
-     * to the bottom-left corner. Used for testing purposes. */
+    /** 一个新的 2048 游戏，RAWVALUES 包含了方块的值（为 0 表示该位置为空）。
+     *  VALUES 以 (x, y) 方式索引，(0, 0) 对应左下角。用于测试。 */
     public Model(int[][] rawValues, int score) {
         board = new Board(rawValues);
         this.score = score;
     }
 
-    /** Return the current Tile at (x, y), where 0 <= x < size(),
-     *  0 <= y < size(). Returns null if there is no tile there.
-     *  Used for testing. */
+    /** 返回当前 (x, y) 位置上的 Tile，其中 0 <= x < size(), 0 <= y < size()。
+     *  如果没有方块，则返回 null。用于测试。 */
     public Tile tile(int x, int y) {
         return board.tile(x, y);
     }
 
-    /** Return the number of squares on one side of the board. */
+    /** 返回棋盘边长。 */
     public int size() {
         return board.size();
     }
 
-    /** Return the current score. */
+    /** 返回当前得分。 */
     public int score() {
         return score;
     }
 
-
-    /** Clear the board to empty and reset the score. */
+    /** 清空棋盘并重置得分。 */
     public void clear() {
         score = 0;
         board.clear();
     }
 
-    /** Add TILE to the board. There must be no Tile currently at the
-     *  same position. */
+    /** 向棋盘添加一个 TILE。添加的位置必须为空。 */
     public void addTile(Tile tile) {
         board.addTile(tile);
     }
 
-    /** Return true iff the game is over (there are no moves, or
-     *  there is a tile with value 2048 on the board). */
+    /** 如果游戏结束（没有可移动的格子，或出现 2048 方块），返回 true。 */
     public boolean gameOver() {
         return maxTileExists() || !atLeastOneMoveExists();
     }
 
-    /** Returns this Model's board. */
+    /** 返回当前模型的棋盘。 */
     public Board getBoard() {
         return board;
     }
 
-    /** Returns true if at least one space on the Board is empty.
-     *  Empty spaces are stored as null.
-     * */
+    /** 如果棋盘上至少有一个空格，返回 true。
+     *  空格用 null 表示。 */
     public boolean emptySpaceExists() {
-        // TODO: Task 2. Fill in this function.
+        // TODO: Task 2. 完成此函数。
+        for (int x =0 ;x<board.size();x++){
+            for(int y = 0;y<board.size();y++){
+                if (board.tile(x,y) == null){
+                    return true;
+                }
+            }
+        }
         return false;
     }
 
-    /**
-     * Returns true if any tile is equal to the maximum valid value.
-     * Maximum valid value is given by this.MAX_PIECE. Note that
-     * given a Tile object t, we get its value with t.value().
-     */
+    /** 如果存在值为最大值（2048）的方块，返回 true。
+     *  最大值由 MAX_PIECE 给出。使用 t.value() 获取 Tile 的数值。 */
     public boolean maxTileExists() {
-        // TODO: Task 3. Fill in this function.
+        // TODO: Task 3. 完成此函数。
+        for (int x =0 ;x<board.size();x++){
+            for(int y =0;y<board.size();y++){
+                Tile t = board.tile(x,y);
+                if (t == null) continue;
+                if (t.value() >= 2048){
+                    return true;
+                }
+            }
+        }
         return false;
     }
 
-    /**
-     * Returns true if there are any valid moves on the board.
-     * There are two ways that there can be valid moves:
-     * 1. There is at least one empty space on the board.
-     * 2. There are two adjacent tiles with the same value.
-     */
+    /** 如果棋盘上还有合法移动方式，返回 true。
+     *  有效移动方式包括：
+     *  1. 存在至少一个空格。
+     *  2. 存在两个相邻方块数值相同。 */
     public boolean atLeastOneMoveExists() {
-        // TODO: Fill in this function.
+        // TODO: 完成此函数。
+        //设置两种条件，至少满足两种条件之一则能至少存在一个可移动
+
+        //1.至少存在一个空格
+        if (emptySpaceExists() == true){
+            return true;
+        }
+        //2.存在两个相邻方块数值相同
+        for (int x=0;x<board.size();x++){
+            //竖着的
+            for (int y=0;y<board.size()-1;y++){
+                Tile curr = board.tile(x, y);
+                Tile next = board.tile(x, y + 1);
+                if (curr != null && next != null && curr.value() == next.value()) {
+                    return true;
+                }
+            }
+            //横着的
+            for(int z=0;z<board.size()-1;z++){
+                if (board.tile(z,x).value() == board.tile(z+1,x).value()){
+                    return true;
+                }
+            }
+        }
+
         return false;
     }
 
-    /**
-     * Moves the tile at position (x, y) as far up as possible.
+    /** 将位置 (x, y) 上的方块尽可能向上移动。
      *
-     * Rules for Tilt:
-     * 1. If two Tiles are adjacent in the direction of motion and have
-     *    the same value, they are merged into one Tile of twice the original
-     *    value and that new value is added to the score instance variable
-     * 2. A tile that is the result of a merge will not merge again on that
-     *    tilt. So each move, every tile will only ever be part of at most one
-     *    merge (perhaps zero).
-     * 3. When three adjacent tiles in the direction of motion have the same
-     *    value, then the leading two tiles in the direction of motion merge,
-     *    and the trailing tile does not.
-     */
+     * 规则：
+     * 1. 如果两个相邻方块在移动方向上数值相同，它们会合并为一个新方块，值为原来的两倍，得分也会增加该值。
+     * 2. 每个方块每次最多只能合并一次。
+     * 3. 如果三个方块相同，只合并靠近移动方向的前两个，最后一个不会合并。 */
     public void moveTileUpAsFarAsPossible(int x, int y) {
         Tile currTile = board.tile(x, y);
         int myValue = currTile.value();
         int targetY = y;
 
-        // TODO: Tasks 5, 6, and 10. Fill in this function.
+        // TODO: Task 5, 6, 10. 完成此函数。
     }
 
-    /** Handles the movements of the tilt in column x of the board
-     * by moving every tile in the column as far up as possible.
-     * The viewing perspective has already been set,
-     * so we are tilting the tiles in this column up.
-     * */
+    /** 处理第 x 列中所有方块的向上移动。
+     * 观察方向已经设置好，因此此处是向上合并。 */
     public void tiltColumn(int x) {
-        // TODO: Task 7. Fill in this function.
+        // TODO: Task 7. 完成此函数。
     }
 
+    /** 处理棋盘向 SIDE 方向的合并。 */
     public void tilt(Side side) {
-        // TODO: Tasks 8 and 9. Fill in this function.
+        // TODO: Task 8 和 9. 完成此函数。
     }
 
-    /** Tilts every column of the board toward SIDE.
-     */
+    /** 将棋盘朝 SIDE 方向整体倾斜。 */
     public void tiltWrapper(Side side) {
         board.resetMerged();
         tilt(side);
     }
-
 
     @Override
     public String toString() {

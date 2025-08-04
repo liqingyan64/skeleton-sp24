@@ -7,9 +7,9 @@ import java.util.Formatter;
  * @author hug
  */
 public class Board {
-    /** Current contents of the board. */
+    /** 当前棋盘上的内容（每个格子是一个 Tile 或 null）。 */
     private final Tile[][] _values;
-    /** Side that the board currently views as north. */
+    /** 当前视角中，哪个方向被视为“北方”。 */
     private Side _viewPerspective;
 
     public Board(int size) {
@@ -17,13 +17,15 @@ public class Board {
         _viewPerspective = Side.NORTH;
     }
 
-    /** Shifts the view of the board such that the board behaves as if side S is north. */
+    /** 将棋盘视角调整为将指定方向 S 视为“北方”。 */
     public void setViewingPerspective(Side s) {
         _viewPerspective = s;
     }
 
-    /** Create a board where RAWVALUES hold the values of the tiles on the board 
-     * (0 is null) with a current score of SCORE and the viewing perspective set to north. */
+    /**
+     * 创建一个棋盘，RAWVALUES 表示棋盘上每个方块的值（0 表示无方块），
+     * 默认视角为北方。
+     */
     public Board(int[][] rawValues) {
         int size = rawValues.length;
         _values = new Tile[size][size];
@@ -42,43 +44,45 @@ public class Board {
         }
     }
 
-    /** Returns the size of the board. */
+    /** 返回棋盘的边长（大小）。 */
     public int size() {
         return _values.length;
     }
 
-    /** Return the current Tile at (x, y), when sitting with the board
-     *  oriented so that SIDE is at the top (farthest) from you. */
+    /**
+     * 返回 (x, y) 位置的 Tile，以指定方向 side 为“上方”视角时的值。
+     */
     private Tile vtile(int x, int y, Side side) {
         return _values[side.x(x, y, size())][side.y(x, y, size())];
     }
 
-    /** Return the current Tile at (x, y), where 0 <= x < size(),
-     *  0 <= y < size(). Returns null if there is no tile there. */
+    /**
+     * 返回位于 (x, y) 处的当前方块（以当前视角 _viewPerspective）。
+     * 如果该位置为空，返回 null。
+     */
     public Tile tile(int x, int y) {
         return vtile(x, y, _viewPerspective);
     }
 
-    /** Clear the board to empty and reset the score. */
+    /** 清空整个棋盘，所有格子设为 null。 */
     public void clear() {
         for (Tile[] column : _values) {
             Arrays.fill(column, null);
         }
     }
 
-    /** Adds the tile T to the board */
+    /** 向棋盘上添加一个方块 Tile t。 */
     public void addTile(Tile t) {
         _values[t.x()][t.y()] = t;
     }
 
-    
-    /** Places the Tile TILE at column x, y y where x and y are
-     * treated as coordinates with respect to the current viewPerspective.
+    /**
+     * 将 TILE 放置在当前视角下的 (x, y) 位置上。
      *
-     * (0, 0) is bottom-left corner.
+     * (0, 0) 是左下角。
      *
-     * If the move is a merge, sets the tile's merged status to true.
-     * */
+     * 如果是合并动作，会将该 tile 的 merged 状态设为 true。
+     */
     public void move(int x, int y, Tile tile) {
         int px = _viewPerspective.x(x, y, size());
         int py = _viewPerspective.y(x, y, size());
@@ -86,14 +90,13 @@ public class Board {
         Tile tile1 = vtile(x, y, _viewPerspective);
         _values[tile.x()][tile.y()] = null;
 
-        // Move or merge the tile. It is important to call setNext
-        // on the old tile(s) so they can be animated into position
+        // 移动或合并方块。需要调用 setNext 以便实现动画过渡效果。
         Tile next;
         if (tile1 == null) {
             next = Tile.create(tile.value(), px, py);
         } else {
             if (tile.value() != tile1.value()) {
-                throw new IllegalArgumentException("Tried to merge two unequal tiles: " + tile + " and " + tile1);
+                throw new IllegalArgumentException("尝试合并两个不同的方块值: " + tile + " 和 " + tile1);
             }
             next = Tile.create(2 * tile.value(), px, py);
             tile1.setNext(next);
@@ -104,7 +107,7 @@ public class Board {
         _values[px][py] = next;
     }
 
-    /** Resets all the merged booleans to false for every tile on the board. */
+    /** 将棋盘上所有方块的 merged 状态重置为 false。 */
     public void resetMerged() {
         for (int x = 0; x < size(); x += 1) {
             for (int y = 0; y < size(); y += 1) {
@@ -115,7 +118,7 @@ public class Board {
         }
     }
 
-    /** Returns the board as a string, used for debugging. */
+    /** 返回棋盘的字符串表示（用于调试）。 */
     @Override
     public String toString() {
         Formatter out = new Formatter();
